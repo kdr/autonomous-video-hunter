@@ -21,6 +21,7 @@ import cv2, numpy as np, os, uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+
 class ImageRansacDBMatcher:
     """
     Tiny in-RAM image DB with RANSAC matching.
@@ -49,16 +50,14 @@ class ImageRansacDBMatcher:
             if img is None:
                 raise FileNotFoundError(p)
             k, d = self.detector.detectAndCompute(img, None)
-            self.db.append(
-                {
-                    "path": Path(p),
-                    "label": lab,
-                    "keypoints": k,
-                    "descriptors": d,
-                    "shape": img.shape,
-                }
-            )
-        
+            self.db.append({
+                "path": Path(p),
+                "label": lab,
+                "keypoints": k,
+                "descriptors": d,
+                "shape": img.shape,
+            })
+
         # Create matcher once and reuse (like original implementation)
         self.matcher = self._make_matcher()
 
@@ -96,7 +95,9 @@ class ImageRansacDBMatcher:
         if debug:
             print(f"\n      🔧 ImageRansacDBMatcher.get_matches() DEBUG:")
             print(f"         Query image: {query_image}")
-            print(f"         Parameters: min_inliers={min_inliers}, min_ratio={min_inlier_ratio}, ratio_test={ratio_test}")
+            print(
+                f"         Parameters: min_inliers={min_inliers}, min_ratio={min_inlier_ratio}, ratio_test={ratio_test}"
+            )
             print(f"         Database has {len(self.db)} reference images")
 
         q_img = cv2.imread(str(query_image), cv2.IMREAD_GRAYSCALE)
@@ -104,7 +105,7 @@ class ImageRansacDBMatcher:
             if debug:
                 print(f"         ❌ Could not load query image: {query_image}")
             raise FileNotFoundError(query_image)
-            
+
         q_k, q_d = self.detector.detectAndCompute(q_img, None)
         if q_d is None:
             if debug:
@@ -112,16 +113,20 @@ class ImageRansacDBMatcher:
             return []
 
         if debug:
-            print(f"         ✅ Query image loaded: {len(q_k)} keypoints, {q_d.shape[0]} descriptors")
+            print(
+                f"         ✅ Query image loaded: {len(q_k)} keypoints, {q_d.shape[0]} descriptors"
+            )
 
         os.makedirs(save_dir, exist_ok=True)
         results: List[Dict[str, Any]] = []
 
         for i, entry in enumerate(self.db):
             if debug:
-                print(f"\n         📷 Comparing against DB image {i+1}/{len(self.db)}: {entry['label']}")
+                print(
+                    f"\n         📷 Comparing against DB image {i+1}/{len(self.db)}: {entry['label']}"
+                )
                 print(f"            Path: {entry['path']}")
-                
+
             db_d = entry["descriptors"]
             if db_d is None:
                 if debug:
@@ -129,39 +134,51 @@ class ImageRansacDBMatcher:
                     results.append({
                         "db_img_path": str(entry["path"].resolve()),
                         "label": entry["label"],
-                        "match_details": {"reason": "DB image has no descriptors"},
+                        "match_details": {
+                            "reason": "DB image has no descriptors"
+                        },
                         "match_draw_path": None,
                     })
                 continue
 
             if debug:
-                print(f"            ✅ DB image has {len(entry['keypoints'])} keypoints, {db_d.shape[0]} descriptors")
+                print(
+                    f"            ✅ DB image has {len(entry['keypoints'])} keypoints, {db_d.shape[0]} descriptors"
+                )
 
             matcher = self._make_matcher()
-            raw     = matcher.knnMatch(db_d, q_d, k=2)   # DB → query
-            
+            raw = matcher.knnMatch(db_d, q_d, k=2)  # DB → query
+
             if debug:
                 print(f"            🔍 Found {len(raw)} raw matches")
-                
-            good    = [m for m, n in raw if m.distance < ratio_test * n.distance]
-            
+
+            good = [m for m, n in raw if m.distance < ratio_test * n.distance]
+
             if debug:
-                print(f"            ✂️  After ratio test ({ratio_test}): {len(good)} good matches")
-                
+                print(
+                    f"            ✂️  After ratio test ({ratio_test}): {len(good)} good matches"
+                )
+
             if len(good) < 4:
                 if debug:
-                    print(f"            ❌ Not enough good matches (need ≥4, got {len(good)})")
+                    print(
+                        f"            ❌ Not enough good matches (need ≥4, got {len(good)})"
+                    )
                     results.append({
                         "db_img_path": str(entry["path"].resolve()),
                         "label": entry["label"],
-                        "match_details": {"num_matches": len(good),
-                                        "reason": "Not enough good feature matches"},
+                        "match_details": {
+                            "num_matches": len(good),
+                            "reason": "Not enough good feature matches"
+                        },
                         "match_draw_path": None,
                     })
                 continue
 
-            src = np.float32([entry["keypoints"][m.queryIdx].pt for m in good]).reshape(-1,1,2)
-            dst = np.float32([q_k[m.trainIdx].pt               for m in good]).reshape(-1,1,2)
+            src = np.float32([entry["keypoints"][m.queryIdx].pt
+                              for m in good]).reshape(-1, 1, 2)
+            dst = np.float32([q_k[m.trainIdx].pt
+                              for m in good]).reshape(-1, 1, 2)
 
             H, mask = cv2.findHomography(src, dst, cv2.RANSAC, 4.0)
             if H is None:
@@ -170,20 +187,29 @@ class ImageRansacDBMatcher:
                     results.append({
                         "db_img_path": str(entry["path"].resolve()),
                         "label": entry["label"],
-                        "match_details": {"num_matches": len(good),
-                                        "reason": "Homography failed"},
+                        "match_details": {
+                            "num_matches": len(good),
+                            "reason": "Homography failed"
+                        },
                         "match_draw_path": None,
                     })
                 continue
 
-            inliers       = int(mask.sum())
-            inlier_ratio  = inliers / len(good)
-            is_good       = (inliers >= min_inliers) and (inlier_ratio >= min_inlier_ratio)
+            inliers = int(mask.sum())
+            inlier_ratio = inliers / len(good)
+            is_good = (inliers >= min_inliers) and (inlier_ratio
+                                                    >= min_inlier_ratio)
 
             if debug:
-                print(f"            🎯 RANSAC results: {inliers} inliers, ratio: {inlier_ratio:.3f}")
-                print(f"            📊 Thresholds: min_inliers={min_inliers}, min_ratio={min_inlier_ratio}")
-                print(f"            {'✅ PASS' if is_good else '❌ FAIL'} threshold check")
+                print(
+                    f"            🎯 RANSAC results: {inliers} inliers, ratio: {inlier_ratio:.3f}"
+                )
+                print(
+                    f"            📊 Thresholds: min_inliers={min_inliers}, min_ratio={min_inlier_ratio}"
+                )
+                print(
+                    f"            {'✅ PASS' if is_good else '❌ FAIL'} threshold check"
+                )
 
             if not is_good and not debug:
                 continue  # skip silently
@@ -195,7 +221,7 @@ class ImageRansacDBMatcher:
                 "homography": H,
             }
             if debug:
-                details["keypoints_db"]    = len(entry["keypoints"])
+                details["keypoints_db"] = len(entry["keypoints"])
                 details["keypoints_query"] = len(q_k)
                 if not is_good:
                     details["reason"] = "Thresholds not met"
@@ -217,36 +243,49 @@ class ImageRansacDBMatcher:
                 vis_path = Path(save_dir) / f"{uuid.uuid4().hex}.jpg"
                 cv2.imwrite(str(vis_path), vis)
                 if debug:
-                    print(f"            💾 Match visualization saved: {vis_path}")
+                    print(
+                        f"            💾 Match visualization saved: {vis_path}")
 
             results.append({
-                "db_img_path": str(entry["path"].resolve()),
-                "label": entry["label"],
-                "match_details": details,
-                "match_draw_path": str(vis_path.resolve()) if vis_path else None,
+                "db_img_path":
+                str(entry["path"].resolve()),
+                "label":
+                entry["label"],
+                "match_details":
+                details,
+                "match_draw_path":
+                str(vis_path.resolve()) if vis_path else None,
             })
 
         results.sort(
             key=lambda r: r["match_details"].get("num_inliers", 0),
             reverse=True,
         )
-        
+
         if debug:
             print(f"\n         📊 FINAL MATCHING RESULTS:")
             print(f"            Total DB images processed: {len(self.db)}")
             print(f"            Results returned: {len(results)}")
-            successful_matches = [r for r in results if r["match_details"].get("num_inliers", 0) >= min_inliers]
-            print(f"            Successful matches (≥{min_inliers} inliers): {len(successful_matches)}")
-            
-            if successful_matches:
-                for j, match in enumerate(successful_matches[:3]):  # Show top 3
-                    details = match["match_details"]
-                    print(f"               #{j+1}: {match['label']} - {details.get('num_inliers', 0)} inliers ({details.get('inlier_ratio', 0):.3f})")
-            else:
-                print(f"            ❌ No matches met the threshold requirements")
-        
-        return results
+            successful_matches = [
+                r for r in results
+                if r["match_details"].get("num_inliers", 0) >= min_inliers
+            ]
+            print(
+                f"            Successful matches (≥{min_inliers} inliers): {len(successful_matches)}"
+            )
 
+            if successful_matches:
+                for j, match in enumerate(
+                        successful_matches[:3]):  # Show top 3
+                    details = match["match_details"]
+                    print(
+                        f"               #{j+1}: {match['label']} - {details.get('num_inliers', 0)} inliers ({details.get('inlier_ratio', 0):.3f})"
+                    )
+            else:
+                print(
+                    f"            ❌ No matches met the threshold requirements")
+
+        return results
 
     # ------------------------------------------------------------------ #
     def is_a_match(
@@ -287,23 +326,22 @@ class ImageRansacDBMatcher:
         k2, d2 = self.detector.detectAndCompute(im2, None)
         if d1 is None or d2 is None:
             details = {"reason": "No descriptors found."}
-            return (
-                {
-                    "db_img_path": str(Path(img1_path).resolve()),
-                    "label": Path(img1_path).stem,
-                    "match_details": details,
-                    "match_draw_path": None,
-                }
-                if debug
-                else None
-            )
+            return ({
+                "db_img_path": str(Path(img1_path).resolve()),
+                "label": Path(img1_path).stem,
+                "match_details": details,
+                "match_draw_path": None,
+            } if debug else None)
 
         matcher = self._make_matcher()
-        raw     = matcher.knnMatch(d1, d2, k=2)            # reference  → candidate
-        good    = [m for m, n in raw if m.distance < ratio_test * n.distance]
+        raw = matcher.knnMatch(d1, d2, k=2)  # reference  → candidate
+        good = [m for m, n in raw if m.distance < ratio_test * n.distance]
         if len(good) < 4:
             if debug:
-                details = {"num_matches": len(good), "reason": "Not enough good matches"}
+                details = {
+                    "num_matches": len(good),
+                    "reason": "Not enough good matches"
+                }
                 return {
                     "db_img_path": str(Path(img1_path).resolve()),
                     "label": Path(img1_path).stem,
@@ -318,7 +356,10 @@ class ImageRansacDBMatcher:
         H, mask = cv2.findHomography(src, dst, cv2.RANSAC, 4.0)
         if H is None:
             if debug:
-                details = {"num_matches": len(good), "reason": "Homography failed"}
+                details = {
+                    "num_matches": len(good),
+                    "reason": "Homography failed"
+                }
                 return {
                     "db_img_path": str(Path(img1_path).resolve()),
                     "label": Path(img1_path).stem,
@@ -327,9 +368,10 @@ class ImageRansacDBMatcher:
                 }
             return None
 
-        inliers      = int(mask.sum())
+        inliers = int(mask.sum())
         inlier_ratio = inliers / len(good)
-        is_good      = (inliers >= min_inliers) and (inlier_ratio >= min_inlier_ratio)
+        is_good = (inliers >= min_inliers) and (inlier_ratio
+                                                >= min_inlier_ratio)
 
         if not is_good and not debug:
             return None
@@ -349,7 +391,12 @@ class ImageRansacDBMatcher:
                 out_path = Path("matches") / f"{uuid.uuid4().hex}.jpg"
                 out_path.parent.mkdir(exist_ok=True)
             vis = cv2.drawMatches(
-                im1, k1, im2, k2, good, None,
+                im1,
+                k1,
+                im2,
+                k2,
+                good,
+                None,
                 matchesMask=mask.ravel().tolist(),
                 flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
             )

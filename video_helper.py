@@ -110,12 +110,18 @@ class VideoHelper:
             # scale filter keeps aspect ratio, limits width.
             cmd = [
                 "ffmpeg",
-                "-loglevel", "error",
-                "-ss", f"{ts}",
-                "-i", str(video),
-                "-frames:v", "1",
-                "-vf", f"scale='min(iw,{max_width})':-2",
-                "-q:v", "2",
+                "-loglevel",
+                "error",
+                "-ss",
+                f"{ts}",
+                "-i",
+                str(video),
+                "-frames:v",
+                "1",
+                "-vf",
+                f"scale='min(iw,{max_width})':-2",
+                "-q:v",
+                "2",
                 str(thumb_path),
             ]
             subprocess.run(cmd, check=True)
@@ -126,7 +132,7 @@ class VideoHelper:
             })
 
         return results
-    
+
     # ------------------------------------------------------------------ #
     # 1-FPS thumbnail extraction                                         #
     # ------------------------------------------------------------------ #
@@ -175,12 +181,18 @@ class VideoHelper:
 
         cmd = [
             "ffmpeg",
-            "-loglevel", "error",
-            "-ss", str(t0),
-            "-to", str(t1),
-            "-i", str(video),
-            "-vf", vf,
-            "-q:v", "2",
+            "-loglevel",
+            "error",
+            "-ss",
+            str(t0),
+            "-to",
+            str(t1),
+            "-i",
+            str(video),
+            "-vf",
+            vf,
+            "-q:v",
+            "2",
             str(temp_pattern),
         ]
         subprocess.run(cmd, check=True)
@@ -188,7 +200,8 @@ class VideoHelper:
         # Gather frames and record timestamps.
         # ffmpeg numbers frames starting at 1; timestamp = t0 + (idx-1) seconds
         results: List[Dict[str, str]] = []
-        for jpg in sorted(self.media_dir.glob(f"{temp_pattern.stem[:-7]}-*.jpg")):
+        for jpg in sorted(
+                self.media_dir.glob(f"{temp_pattern.stem[:-7]}-*.jpg")):
             # Extract frame index from "...-000123.jpg"
             idx = int(jpg.stem.split("-")[-1])
             ts = t0 + (idx - 1)  # seconds
@@ -203,8 +216,6 @@ class VideoHelper:
 
         return results
 
-
-
     # ------------------------------------------------------------------ #
     # Internal helpers                                                   #
     # ------------------------------------------------------------------ #
@@ -213,10 +224,14 @@ class VideoHelper:
         """Return video duration (seconds) using ffprobe."""
         cmd = [
             "ffprobe",
-            "-v", "error",
-            "-select_streams", "v:0",
-            "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
             str(video),
         ]
         try:
@@ -240,6 +255,7 @@ class VideoHelper:
             Duration in seconds (may be fractional).
         """
         return self._probe_duration(pathlib.Path(video_path))
+
 
 # ----------------------- Usage example ----------------------- #
 # helper = VideoHelper("./media")

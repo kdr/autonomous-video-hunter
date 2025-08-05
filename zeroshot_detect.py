@@ -34,13 +34,14 @@ class ZeroShotDetector:
     crops_dir : str | Path, optional
         Where to save cropped images (created if missing).
     """
+
     def __init__(self,
                  model_name: str = "google/owlv2-base-patch16-ensemble",
                  crops_dir: str | Path = "crops") -> None:
         self.detector = pipeline(
             task="zero-shot-object-detection",
             model=model_name,
-            device=-1,        # -1 → CPU
+            device=-1,  # -1 → CPU
         )
         self.crops_dir = Path(crops_dir)
         self.crops_dir.mkdir(parents=True, exist_ok=True)
@@ -81,10 +82,8 @@ class ZeroShotDetector:
             if crop:
                 for item in by_label[lbl]:
                     box = item["box"]
-                    xmin, ymin, xmax, ymax = (
-                        int(box["xmin"]), int(box["ymin"]),
-                        int(box["xmax"]), int(box["ymax"])
-                    )
+                    xmin, ymin, xmax, ymax = (int(box["xmin"]), int(
+                        box["ymin"]), int(box["xmax"]), int(box["ymax"]))
                     crop_img = image.crop((xmin, ymin, xmax, ymax))
                     crop_path = self.crops_dir / f"{uuid4()}.jpg"
                     crop_img.save(crop_path)

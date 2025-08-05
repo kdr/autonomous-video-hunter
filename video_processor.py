@@ -56,11 +56,8 @@ class VideoProcessor:
         self.media_dir = Path(media_dir).expanduser().resolve()
         self.media_dir.mkdir(parents=True, exist_ok=True)
 
-        self.db_path = (
-            Path(db_path).expanduser().resolve()
-            if db_path is not None
-            else self.media_dir / "db.jsonl"
-        )
+        self.db_path = (Path(db_path).expanduser().resolve() if db_path
+                        is not None else self.media_dir / "db.jsonl")
         # Touch the DB file so later `open(..., 'a')` never fails
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.db_path.touch(exist_ok=True)
@@ -75,15 +72,15 @@ class VideoProcessor:
             if not api_key:
                 raise ValueError(
                     "CloudGlue API key missing.  Pass `api_key=` or set "
-                    "env var CLOUDGLUE_API_KEY."
-                )
+                    "env var CLOUDGLUE_API_KEY.")
             self._vu = VideoUnderstander(api_key=api_key)
 
     # ------------------------------------------------------------------ #
     # Public API                                                         #
     # ------------------------------------------------------------------ #
 
-    def get_processed_output(self, input_video_path: str | Path) -> Dict[str, Any] | None:
+    def get_processed_output(
+            self, input_video_path: str | Path) -> Dict[str, Any] | None:
         """
         Look up `input_video_path` in the JSONL cache.  Returns the stored
         summary dict on hit, otherwise None.
@@ -103,7 +100,10 @@ class VideoProcessor:
                     continue
         return None
 
-    def process(self, input_video_path: str | Path, *, save_to_db: bool = False) -> Dict[str, Any]:
+    def process(self,
+                input_video_path: str | Path,
+                *,
+                save_to_db: bool = False) -> Dict[str, Any]:
         """
         End-to-end processing pipeline.
 
@@ -124,8 +124,7 @@ class VideoProcessor:
 
         # Step-1: thumbnails
         local_frames: List[Dict[str, str]] = self._vh.extract_frames_uniform(
-            video_path, num_frames=8
-        )
+            video_path, num_frames=8)
 
         # Step-2: CloudGlue summary
         summary = self._vu.general_summary(video_path)

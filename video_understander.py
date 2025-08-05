@@ -47,10 +47,8 @@ class VideoUnderstander:
     def upload_file(self, file_path: str | Path):
         """Upload a local file and return the `File` object."""
         file_path = Path(file_path).expanduser()
-        return self._client.files.upload(
-            file_path=str(file_path),
-            wait_until_finish=True
-        )
+        return self._client.files.upload(file_path=str(file_path),
+                                         wait_until_finish=True)
 
     # --------------------------------------------------------------------- #
     # One-shot high-level call
@@ -83,15 +81,13 @@ class VideoUnderstander:
             enable_visual_scene_description=True,
         )
 
-        extract_prompt = (
-            "Extract whether the video contains:\n"
-            "- a visually identifiable human face\n"
-            "- spoken narration\n"
-            "- is outdoors\n"
-            "- has text on screen\n"
-            "- has logos\n"
-            "- visible logo name (provide if known)"
-        )
+        extract_prompt = ("Extract whether the video contains:\n"
+                          "- a visually identifiable human face\n"
+                          "- spoken narration\n"
+                          "- is outdoors\n"
+                          "- has text on screen\n"
+                          "- has logos\n"
+                          "- visible logo name (provide if known)")
         extract_schema = {
             "has_face": False,
             "has_speech": True,
@@ -103,7 +99,8 @@ class VideoUnderstander:
 
         # run in parallel threads because SDK is blocking / network-bound
         with _cf.ThreadPoolExecutor(max_workers=2) as ex:
-            f_describe = ex.submit(self._client.transcribe.run, **transcribe_cfg)
+            f_describe = ex.submit(self._client.transcribe.run,
+                                   **transcribe_cfg)
             f_extract = ex.submit(
                 self._client.extract.run,
                 url=file_obj.uri,
@@ -117,8 +114,7 @@ class VideoUnderstander:
 
         # grab markdown summary
         markdown_doc = self._client.transcribe.get(
-            describe_job.job_id, response_format="markdown"
-        ).data.content
+            describe_job.job_id, response_format="markdown").data.content
 
         ent = extract_job.data.entities
         return {

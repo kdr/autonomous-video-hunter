@@ -20,17 +20,10 @@ from deepagents import create_deep_agent, SubAgent
 
 # Import the video analysis tools
 from video_analysis_tools import (
-    get_video_context,
-    search_video_collection, 
-    detect_faces_in_video,
-    detect_objects_in_video,
-    match_images_in_video,
-    analyze_video_sentiment,
-    extract_temporal_info,
-    compare_videos,
-    add_video_memory,
-    cross_reference_findings
-)
+    get_video_context, search_video_collection, detect_faces_in_video,
+    detect_objects_in_video, match_images_in_video, analyze_video_sentiment,
+    extract_temporal_info, compare_videos, add_video_memory,
+    cross_reference_findings)
 
 # Sub-agent for detailed face analysis
 face_analysis_prompt = """You are a specialized face analysis expert for OSINT investigations. 
@@ -50,12 +43,14 @@ Only your FINAL analysis will be passed to the main investigator."""
 
 face_analysis_agent = {
     "name": "face-analysis-agent",
-    "description": "Specialized in detailed face detection, matching, and analysis in videos. Use when you need deep analysis of people appearing in videos.",
+    "description":
+    "Specialized in detailed face detection, matching, and analysis in videos. Use when you need deep analysis of people appearing in videos.",
     "prompt": face_analysis_prompt,
-    "tools": ["detect_faces_in_video", "get_video_context", "add_video_memory"]
+    "tools":
+    ["detect_faces_in_video", "get_video_context", "add_video_memory"]
 }
 
-# Sub-agent for visual/object analysis  
+# Sub-agent for visual/object analysis
 visual_analysis_prompt = """You are a specialized visual analysis expert for OSINT investigations.
 
 Your job is to conduct detailed object detection, logo identification, and visual element analysis on videos.
@@ -72,10 +67,16 @@ Provide detailed analysis including:
 Only your FINAL analysis will be passed to the main investigator."""
 
 visual_analysis_agent = {
-    "name": "visual-analysis-agent", 
-    "description": "Specialized in object detection, logo identification, building/landmark matching, and visual scene analysis. Use when you need deep analysis of visual elements in videos.",
-    "prompt": visual_analysis_prompt,
-    "tools": ["detect_objects_in_video", "match_images_in_video", "get_video_context", "add_video_memory"]
+    "name":
+    "visual-analysis-agent",
+    "description":
+    "Specialized in object detection, logo identification, building/landmark matching, and visual scene analysis. Use when you need deep analysis of visual elements in videos.",
+    "prompt":
+    visual_analysis_prompt,
+    "tools": [
+        "detect_objects_in_video", "match_images_in_video",
+        "get_video_context", "add_video_memory"
+    ]
 }
 
 # Sub-agent for content and sentiment analysis
@@ -95,10 +96,16 @@ Provide detailed analysis including:
 Only your FINAL analysis will be passed to the main investigator."""
 
 content_analysis_agent = {
-    "name": "content-analysis-agent",
-    "description": "Specialized in sentiment analysis, temporal information extraction, and contextual intelligence gathering from video content.",
-    "prompt": content_analysis_prompt, 
-    "tools": ["analyze_video_sentiment", "extract_temporal_info", "get_video_context", "add_video_memory"]
+    "name":
+    "content-analysis-agent",
+    "description":
+    "Specialized in sentiment analysis, temporal information extraction, and contextual intelligence gathering from video content.",
+    "prompt":
+    content_analysis_prompt,
+    "tools": [
+        "analyze_video_sentiment", "extract_temporal_info",
+        "get_video_context", "add_video_memory"
+    ]
 }
 
 # Main agent instructions
@@ -184,17 +191,13 @@ Remember: You are conducting intelligence analysis. Be objective, thorough, and 
 # Create the video analysis agent
 video_analysis_agent = create_deep_agent(
     [
-        get_video_context,
-        search_video_collection,
-        detect_faces_in_video, 
-        detect_objects_in_video,
-        match_images_in_video,
-        analyze_video_sentiment,
-        extract_temporal_info,
-        compare_videos,
-        add_video_memory,
-        cross_reference_findings
+        get_video_context, search_video_collection, detect_faces_in_video,
+        detect_objects_in_video, match_images_in_video,
+        analyze_video_sentiment, extract_temporal_info, compare_videos,
+        add_video_memory, cross_reference_findings
     ],
     video_investigation_instructions,
-    subagents=[face_analysis_agent, visual_analysis_agent, content_analysis_agent],
+    subagents=[
+        face_analysis_agent, visual_analysis_agent, content_analysis_agent
+    ],
 ).with_config({"recursion_limit": 1000})

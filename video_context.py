@@ -78,10 +78,14 @@ class VideoContextStore:
         return {
             "video_path": key,
             "summary": summary_copy,
-            "memories": [{"name": n, "value": v} for n, v in entry["memories"]],
+            "memories": [{
+                "name": n,
+                "value": v
+            } for n, v in entry["memories"]],
         }
 
-    def add_memory(self, local_video_path: str | Path, memory_name: str, memory_value: str) -> None:
+    def add_memory(self, local_video_path: str | Path, memory_name: str,
+                   memory_value: str) -> None:
         """Prepend a new (name, value) memory for the given video."""
         key = self._normalize_path(local_video_path)
         if key not in self._store:
@@ -106,7 +110,7 @@ class VideoContextStore:
         """
         keys_sorted = sorted(self._store.keys())
         total = len(keys_sorted)
-        slice_ = keys_sorted[start : start + limit]
+        slice_ = keys_sorted[start:start + limit]
 
         contexts = []
         for k in slice_:
@@ -114,17 +118,23 @@ class VideoContextStore:
             if not include_local_frames:
                 summary_copy.pop("local_frames", None)
 
-            contexts.append(
-                {
-                    "video_path": k,
-                    "summary": summary_copy,
-                    "memories": [
-                        {"name": n, "value": v} for n, v in self._store[k]["memories"]
-                    ],
-                }
-            )
+            contexts.append({
+                "video_path":
+                k,
+                "summary":
+                summary_copy,
+                "memories": [{
+                    "name": n,
+                    "value": v
+                } for n, v in self._store[k]["memories"]],
+            })
 
-        return {"start": start, "limit": limit, "total": total, "video_contexts": contexts}
+        return {
+            "start": start,
+            "limit": limit,
+            "total": total,
+            "video_contexts": contexts
+        }
 
     def reload(self, db_jsonl_path: str | Path | None = None) -> None:
         """
@@ -133,11 +143,8 @@ class VideoContextStore:
         If `db_jsonl_path` is omitted, reloads from the path used during
         construction / last reload.
         """
-        path = (
-            Path(db_jsonl_path).expanduser().resolve()
-            if db_jsonl_path is not None
-            else self._db_path
-        )
+        path = (Path(db_jsonl_path).expanduser().resolve()
+                if db_jsonl_path is not None else self._db_path)
         if path is None:
             raise ValueError("No DB path available; provide `db_jsonl_path`.")
 

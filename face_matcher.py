@@ -36,14 +36,15 @@ class FaceMatcher:
     """
 
     def __init__(
-        self,
-        reference_images: List[str],
-        names: Optional[List[str]] = None,
-        media_dir: str | Path = "./faces",
-        model_name: str = "VGG-Face",
-        detector_backend: str = "retinaface",
-        align: bool = True,
-        match_threshold: float = 0.68,  # cosine-distance threshold (lower == closer)
+            self,
+            reference_images: List[str],
+            names: Optional[List[str]] = None,
+            media_dir: str | Path = "./faces",
+            model_name: str = "VGG-Face",
+            detector_backend: str = "retinaface",
+            align: bool = True,
+            match_threshold:
+        float = 0.68,  # cosine-distance threshold (lower == closer)
     ):
         self.media_dir = Path(media_dir)
         self.media_dir.mkdir(parents=True, exist_ok=True)
@@ -64,23 +65,27 @@ class FaceMatcher:
                 continue  # nothing detected
             # Store every detected face in this image
             for f in faces:
-                self.db.append(
-                    {
-                        "name": names[idx] if names else Path(img_path).stem,
-                        "embedding": np.array(f["embedding"], dtype=np.float32),
-                        "facial_area": f["facial_area"],
-                        "image_path": img_path,
-                    }
-                )
+                self.db.append({
+                    "name":
+                    names[idx] if names else Path(img_path).stem,
+                    "embedding":
+                    np.array(f["embedding"], dtype=np.float32),
+                    "facial_area":
+                    f["facial_area"],
+                    "image_path":
+                    img_path,
+                })
         if not self.db:
             raise RuntimeError("No faces found in reference images")
 
         # Stack embeddings for fast vectorised distance checks
-        self._db_embeddings = np.stack([entry["embedding"] for entry in self.db])
+        self._db_embeddings = np.stack(
+            [entry["embedding"] for entry in self.db])
 
     # ---------- public APIs -------------------------------------------------
 
 # --- replace the whole is_match with this ---------------------------------
+
     def is_match(
         self,
         target_face_image_path: str,
@@ -110,17 +115,17 @@ class FaceMatcher:
             "match": passed,
             "confidence": float(best_sim),
             "bounding_box": best_face["facial_area"],
-            "image_path": test_face_img_path,   # <── NEW
+            "image_path": test_face_img_path,  # <── NEW
             "num_faces": len(test_faces),
         }
         if crop:
             result["crop_image_path"] = self._save_crop(
-                test_face_img_path, best_face["facial_area"]
-            )
+                test_face_img_path, best_face["facial_area"])
         return result
 
 
 # --- replace the whole matches with this ----------------------------------
+
     def matches(
         self,
         test_face_img_path: str,
@@ -140,7 +145,7 @@ class FaceMatcher:
         for face in test_faces:
             sims = self._similarities(face["embedding"])
             for idx, sim in enumerate(sims):
-                if sim >= (1 - self.match_threshold):        # passes threshold
+                if sim >= (1 - self.match_threshold):  # passes threshold
                     candidates.append((sim, face["facial_area"], idx))
 
         if not candidates:
@@ -152,7 +157,7 @@ class FaceMatcher:
         results, seen_names = [], set()
         for sim, bbox, ref_idx in candidates:
             ref = self.db[ref_idx]
-            if ref["name"] in seen_names:        # keep only one hit per person
+            if ref["name"] in seen_names:  # keep only one hit per person
                 continue
             entry = {
                 "name": ref["name"],
@@ -161,7 +166,8 @@ class FaceMatcher:
                 "image_path": ref["image_path"],  # <── NEW  (reference img)
             }
             if crop:
-                entry["crop_image_path"] = self._save_crop(test_face_img_path, bbox)
+                entry["crop_image_path"] = self._save_crop(
+                    test_face_img_path, bbox)
             results.append(entry)
             seen_names.add(ref["name"])
             if len(results) >= topk:
@@ -196,14 +202,13 @@ class FaceMatcher:
     def _similarities(self, emb: np.ndarray) -> np.ndarray:
         # emb: (d,)  _db_embeddings: (N,d)
         sims = emb @ self._db_embeddings.T / (
-            np.linalg.norm(emb) * np.linalg.norm(self._db_embeddings, axis=1)
-        )
+            np.linalg.norm(emb) * np.linalg.norm(self._db_embeddings, axis=1))
         return sims.astype(np.float32)
 
     def _save_crop(self, img_path: str, box: Dict[str, int]) -> str:
         img = cv2.imread(img_path)
         x, y, w, h = box["x"], box["y"], box["w"], box["h"]
-        crop = img[y : y + h, x : x + w]
+        crop = img[y:y + h, x:x + w]
         out_path = self.media_dir / f"{uuid.uuid4()}.jpg"
         cv2.imwrite(str(out_path), crop)
         return str(out_path.resolve())
