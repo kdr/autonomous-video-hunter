@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "video_analysis": "./video_analysis_agent.py:video_analysis_agent"
+  },
+  "env": ".env"
+}
