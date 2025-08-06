@@ -2,6 +2,8 @@
 
 A proof-of-concept (POC) OSINT (Open Source Intelligence) video analysis system built with LangGraph. This implementation demonstrates how deep research agents can be used for automated video analysis, including face detection, object recognition, image matching, sentiment analysis, and cross-video correlation for intelligence gathering use cases.
 
+<img src="screen.png" />
+
 ## About This POC
 
 This project serves as a demonstration of:
