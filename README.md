@@ -1,8 +1,13 @@
 # Autonomous Video Hunter
 
+<img src="chaos-noise.png" />
+
 A proof-of-concept (POC) OSINT (Open Source Intelligence) video analysis system built with LangGraph. This implementation demonstrates how deep research agents can be used for automated video analysis, including face detection, object recognition, image matching, sentiment analysis, and cross-video correlation for intelligence gathering use cases.
 
 <img src="screen.png" />
+
+<img src="flow.png" />
+
 
 ## About This POC
 
@@ -32,6 +37,8 @@ The codebase is designed to showcase techniques and patterns rather than provide
 - Data privacy and retention policies
 - Performance optimization for large-scale deployments
 
+An additional limitation not covered by this repo is the scraping infrastructure for collecting videos at scale from target public sources, but a POC for how to gather videos from social sources like TikTok (as shown in the Recon Village @ DEF CON 33 talk) is provided here: [Gumloop Social Media Intelligence Listener / TikTok Scraper Template](https://www.gumloop.com/pipeline?workbook_id=sQvgaRb9Q81nCwBCwipHub)
+
 ## Features
 
 ### Core Video Analysis
@@ -50,6 +57,8 @@ The codebase is designed to showcase techniques and patterns rather than provide
 - **Specialized Sub-Agents**: Domain experts for face analysis, visual analysis, and content analysis
 - **Coordinated Investigation**: Systematic approach following OSINT best practices
 - **Comprehensive Reporting**: Detailed intelligence reports with confidence assessments
+
+<img src="agents.png" />
 
 ## Prerequisites
 
